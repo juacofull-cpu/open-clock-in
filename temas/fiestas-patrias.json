@@ -1,0 +1,187 @@
+{
+ "nombre": "Fiestas Patrias",
+ "desde": "09-15",
+ "hasta": "09-20",
+ "adorno": "confeti",
+ "luces": true,
+ "entrada": [
+  "¡Viva Chile, {nombre}!",
+  "¿Empanada de pino o de queso, {nombre}?",
+  "¡A la fonda, {nombre}!",
+  "¡Felices Fiestas Patrias, {nombre}!"
+ ],
+ "salida": [
+  "¡Que no se te pase la mano con la chicha, {nombre}!",
+  "¡A bailar cueca, {nombre}!",
+  "Felices fiestas, {nombre}"
+ ],
+ "especiales": [
+  {
+   "dia": "09-17",
+   "tipo": "salida",
+   "textos": [
+    "¡Que tengas un dieciocho bacán, {nombre}!"
+   ]
+  },
+  {
+   "dia": "09-18",
+   "textos": [
+    "¿{nombre}? ¡Hoy es 18, anda a la fonda!"
+   ]
+  },
+  {
+   "dia": "09-19",
+   "textos": [
+    "¿Trabajando el 19, {nombre}? ¡Viva Chile igual!"
+   ]
+  },
+  {
+   "tipo": "entrada",
+   "cada": 25,
+   "textos": [
+    "¿Trajiste anticuchos para todos, {nombre}?"
+   ]
+  }
+ ],
+ "sorpresa": {
+  "texto": "¡Ceacheí! ¡Chi chi chi, le le le!",
+  "tono": [
+   [
+    1047,
+    120
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1047,
+    95
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1047,
+    215
+   ],
+   [
+    0,
+    60
+   ],
+   [
+    1568,
+    120
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1568,
+    95
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1568,
+    215
+   ]
+  ]
+ },
+ "tonos": {
+  "ok": [
+   [
+    784,
+    150
+   ],
+   [
+    1047,
+    150
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1047,
+    125
+   ],
+   [
+    1175,
+    150
+   ],
+   [
+    1319,
+    300
+   ],
+   [
+    1175,
+    150
+   ],
+   [
+    1047,
+    300
+   ]
+  ],
+  "salida": [
+   [
+    1319,
+    150
+   ],
+   [
+    1175,
+    150
+   ],
+   [
+    1047,
+    150
+   ],
+   [
+    988,
+    150
+   ],
+   [
+    1047,
+    400
+   ]
+  ],
+  "error": [
+   [
+    392,
+    180
+   ],
+   [
+    0,
+    60
+   ],
+   [
+    330,
+    260
+   ]
+  ],
+  "aviso": [
+   [
+    1568,
+    100
+   ],
+   [
+    0,
+    50
+   ],
+   [
+    1568,
+    100
+   ]
+  ],
+  "tecla": [
+   [
+    2637,
+    16
+   ]
+  ]
+ }
+}

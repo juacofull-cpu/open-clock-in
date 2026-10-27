@@ -1,0 +1,291 @@
+{
+ "nombre": "Año Nuevo",
+ "desde": "12-26",
+ "hasta": "01-02",
+ "adorno": "fuegos",
+ "luces": false,
+ "entrada": [
+  "¡Feliz Año Nuevo, {nombre}!",
+  "¡Hola {nombre}! Que venga un gran año",
+  "¡Vamos con todo, {nombre}!",
+  "¡Qué bueno verte, {nombre}!"
+ ],
+ "salida": [
+  "¡Feliz Año Nuevo, {nombre}!",
+  "Nos vemos, {nombre}. ¡Un brindis por ti!",
+  "Chao {nombre}, ¡a celebrar!"
+ ],
+ "especiales": [
+  {
+   "dia": "12-31",
+   "tipo": "entrada",
+   "textos": [
+    "¡Último día del {año}, {nombre}!"
+   ]
+  },
+  {
+   "dia": "12-31",
+   "tipo": "salida",
+   "textos": [
+    "¡Nos vemos el próximo año, {nombre}!"
+   ],
+   "tono": [
+    [
+     587,
+     240
+    ],
+    [
+     784,
+     360
+    ],
+    [
+     0,
+     25
+    ],
+    [
+     784,
+     95
+    ],
+    [
+     0,
+     25
+    ],
+    [
+     784,
+     215
+    ],
+    [
+     988,
+     240
+    ],
+    [
+     880,
+     360
+    ],
+    [
+     784,
+     120
+    ],
+    [
+     880,
+     240
+    ],
+    [
+     988,
+     240
+    ],
+    [
+     784,
+     360
+    ],
+    [
+     0,
+     25
+    ],
+    [
+     784,
+     95
+    ],
+    [
+     988,
+     240
+    ],
+    [
+     1175,
+     240
+    ],
+    [
+     1319,
+     600
+    ]
+   ]
+  },
+  {
+   "dia": "01-01",
+   "textos": [
+    "¿{nombre}? ¡Hoy es feriado, anda a dormir!"
+   ]
+  },
+  {
+   "dia": "01-02",
+   "tipo": "entrada",
+   "textos": [
+    "¡Feliz {año}, {nombre}! Primera marca del año"
+   ]
+  },
+  {
+   "tipo": "entrada",
+   "cada": 25,
+   "textos": [
+    "¿Comiste las 12 uvas, {nombre}?",
+    "¿Diste la vuelta a la manzana con la maleta, {nombre}?",
+    "¿Calzones amarillos listos, {nombre}?"
+   ]
+  }
+ ],
+ "sorpresa": {
+  "texto": "Diez, nueve, ocho... ¡Feliz Año Nuevo!",
+  "tono": [
+   [
+    700,
+    28
+   ],
+   [
+    800,
+    28
+   ],
+   [
+    900,
+    28
+   ],
+   [
+    1000,
+    28
+   ],
+   [
+    1100,
+    28
+   ],
+   [
+    1200,
+    28
+   ],
+   [
+    1300,
+    28
+   ],
+   [
+    1400,
+    28
+   ],
+   [
+    1500,
+    28
+   ],
+   [
+    1600,
+    28
+   ],
+   [
+    1700,
+    28
+   ],
+   [
+    1800,
+    28
+   ],
+   [
+    1900,
+    28
+   ],
+   [
+    2000,
+    28
+   ],
+   [
+    2100,
+    28
+   ],
+   [
+    2200,
+    28
+   ],
+   [
+    0,
+    90
+   ],
+   [
+    2637,
+    50
+   ],
+   [
+    2093,
+    50
+   ],
+   [
+    2637,
+    50
+   ],
+   [
+    1568,
+    50
+   ],
+   [
+    2093,
+    120
+   ]
+  ]
+ },
+ "tonos": {
+  "ok": [
+   [
+    1047,
+    110
+   ],
+   [
+    1319,
+    110
+   ],
+   [
+    1568,
+    110
+   ],
+   [
+    2093,
+    330
+   ]
+  ],
+  "salida": [
+   [
+    1568,
+    140
+   ],
+   [
+    1319,
+    140
+   ],
+   [
+    1047,
+    140
+   ],
+   [
+    1568,
+    360
+   ]
+  ],
+  "error": [
+   [
+    392,
+    180
+   ],
+   [
+    0,
+    60
+   ],
+   [
+    330,
+    260
+   ]
+  ],
+  "aviso": [
+   [
+    1568,
+    100
+   ],
+   [
+    0,
+    50
+   ],
+   [
+    1568,
+    100
+   ]
+  ],
+  "tecla": [
+   [
+    2637,
+    16
+   ]
+  ]
+ }
+}

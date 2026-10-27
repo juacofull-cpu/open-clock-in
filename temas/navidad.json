@@ -1,0 +1,248 @@
+{
+ "nombre": "Navidad",
+ "desde": "12-01",
+ "hasta": "12-25",
+ "adorno": "nieve",
+ "luces": true,
+ "entrada": [
+  "¡Jo jo jo, {nombre}!",
+  "¡Feliz Navidad, {nombre}!",
+  "¡Qué bueno verte, {nombre}!",
+  "Hola {nombre}, ¡ya viene la Navidad!",
+  "¡Hola {nombre}! Que sea un buen día"
+ ],
+ "salida": [
+  "Felices fiestas, {nombre}",
+  "Nos vemos, {nombre}. ¡Jo jo jo!",
+  "¡Que descanses, {nombre}!",
+  "Nos vemos pronto, {nombre}",
+  "Chao {nombre}, ¡feliz Navidad!"
+ ],
+ "especiales": [
+  {
+   "dia": "12-24",
+   "tipo": "entrada",
+   "textos": [
+    "¡Hoy llega el Viejito Pascuero, {nombre}!"
+   ]
+  },
+  {
+   "dia": "12-24",
+   "desde": "15:00",
+   "tipo": "salida",
+   "textos": [
+    "¡Corre, {nombre}, que llega el Viejito Pascuero!"
+   ]
+  },
+  {
+   "dia": "12-25",
+   "textos": [
+    "¿Trabajando en Navidad, {nombre}? ¡Eres una leyenda!"
+   ]
+  },
+  {
+   "tipo": "entrada",
+   "cada": 30,
+   "textos": [
+    "Psst, {nombre}... el Viejito Pascuero ya sabe si te portaste bien"
+   ]
+  },
+  {
+   "tipo": "salida",
+   "cada": 30,
+   "textos": [
+    "¿Ya compraste el pan de pascua, {nombre}?",
+    "¿Y la cola de mono, {nombre}?"
+   ]
+  }
+ ],
+ "sorpresa": {
+  "texto": "¡Jo jo jo! ¡Me pillaste!",
+  "tono": [
+   [
+    392,
+    220
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    392,
+    195
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    392,
+    355
+   ],
+   [
+    0,
+    80
+   ],
+   [
+    2637,
+    60
+   ],
+   [
+    2093,
+    60
+   ],
+   [
+    2637,
+    120
+   ]
+  ]
+ },
+ "tonos": {
+  "ok": [
+   [
+    1319,
+    130
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1319,
+    105
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1319,
+    235
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1319,
+    105
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1319,
+    105
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1319,
+    235
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1319,
+    105
+   ],
+   [
+    1568,
+    130
+   ],
+   [
+    1047,
+    195
+   ],
+   [
+    1175,
+    65
+   ],
+   [
+    1319,
+    520
+   ]
+  ],
+  "salida": [
+   [
+    784,
+    230
+   ],
+   [
+    1047,
+    230
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    1047,
+    90
+   ],
+   [
+    1175,
+    115
+   ],
+   [
+    1047,
+    115
+   ],
+   [
+    988,
+    115
+   ],
+   [
+    880,
+    230
+   ],
+   [
+    0,
+    25
+   ],
+   [
+    880,
+    205
+   ]
+  ],
+  "error": [
+   [
+    392,
+    180
+   ],
+   [
+    0,
+    60
+   ],
+   [
+    330,
+    260
+   ]
+  ],
+  "aviso": [
+   [
+    1568,
+    100
+   ],
+   [
+    0,
+    50
+   ],
+   [
+    1568,
+    100
+   ]
+  ],
+  "tecla": [
+   [
+    2637,
+    16
+   ]
+  ]
+ }
+}

@@ -1,0 +1,85 @@
+{
+ "nombre": "Día del Trabajador",
+ "desde": "05-01",
+ "hasta": "05-01",
+ "adorno": "confeti",
+ "luces": false,
+ "entrada": [
+  "¿{nombre}? ¡Hoy es feriado!",
+  "¡Feliz día del trabajador, {nombre}!"
+ ],
+ "salida": [
+  "¡Anda a descansar, {nombre}, te lo ganaste!"
+ ],
+ "sorpresa": {
+  "texto": "Hoy el reloj también está de feriado"
+ },
+ "tonos": {
+  "ok": [
+   [
+    784,
+    120
+   ],
+   [
+    1047,
+    120
+   ],
+   [
+    1319,
+    120
+   ],
+   [
+    1568,
+    360
+   ]
+  ],
+  "salida": [
+   [
+    1568,
+    120
+   ],
+   [
+    1319,
+    120
+   ],
+   [
+    1047,
+    360
+   ]
+  ],
+  "error": [
+   [
+    392,
+    180
+   ],
+   [
+    0,
+    60
+   ],
+   [
+    330,
+    260
+   ]
+  ],
+  "aviso": [
+   [
+    1568,
+    100
+   ],
+   [
+    0,
+    50
+   ],
+   [
+    1568,
+    100
+   ]
+  ],
+  "tecla": [
+   [
+    2637,
+    16
+   ]
+  ]
+ }
+}

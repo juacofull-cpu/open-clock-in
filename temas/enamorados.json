@@ -1,0 +1,110 @@
+{
+ "nombre": "San Valentín",
+ "desde": "02-14",
+ "hasta": "02-14",
+ "adorno": "confeti",
+ "luces": false,
+ "entrada": [
+  "¡Feliz 14, {nombre}!",
+  "Hola {nombre}, ¡aquí te queremos!",
+  "¡Qué bueno que llegaste, {nombre}!"
+ ],
+ "salida": [
+  "Chao {nombre}, ¡que tengas un lindo 14!",
+  "Nos vemos, {nombre}. ¡Mucho amor!"
+ ],
+ "especiales": [
+  {
+   "tipo": "entrada",
+   "cada": 20,
+   "textos": [
+    "El lector dice que tienes la huella más linda, {nombre}"
+   ]
+  }
+ ],
+ "sorpresa": {
+  "texto": "Este reloj te quiere harto",
+  "tono": [
+   [
+    1319,
+    160
+   ],
+   [
+    1047,
+    160
+   ],
+   [
+    1319,
+    160
+   ],
+   [
+    1568,
+    480
+   ]
+  ]
+ },
+ "tonos": {
+  "ok": [
+   [
+    1319,
+    120
+   ],
+   [
+    1568,
+    120
+   ],
+   [
+    2093,
+    300
+   ]
+  ],
+  "salida": [
+   [
+    2093,
+    120
+   ],
+   [
+    1568,
+    120
+   ],
+   [
+    1319,
+    300
+   ]
+  ],
+  "error": [
+   [
+    392,
+    180
+   ],
+   [
+    0,
+    60
+   ],
+   [
+    330,
+    260
+   ]
+  ],
+  "aviso": [
+   [
+    1568,
+    100
+   ],
+   [
+    0,
+    50
+   ],
+   [
+    1568,
+    100
+   ]
+  ],
+  "tecla": [
+   [
+    2637,
+    16
+   ]
+  ]
+ }
+}

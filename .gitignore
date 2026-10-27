@@ -1,0 +1,12 @@
+.pio/
+.sim/
+.vscode/
+build/
+out/
+__pycache__/
+*.pyc
+server/*.db
+server/*.db-*
+*.csv
+firmware.bin
+.env

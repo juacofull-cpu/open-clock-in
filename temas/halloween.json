@@ -1,0 +1,148 @@
+{
+ "nombre": "Halloween",
+ "desde": "10-31",
+ "hasta": "11-01",
+ "adorno": "almas",
+ "luces": false,
+ "entrada": [
+  "Buuu... hola {nombre}",
+  "¿Dulce o truco, {nombre}?",
+  "¡Llegaste al reloj embrujado, {nombre}!"
+ ],
+ "salida": [
+  "Cuidado con los fantasmas, {nombre}",
+  "Chao {nombre}... no mires atrás",
+  "¡Que no te pille la noche, {nombre}!"
+ ],
+ "especiales": [
+  {
+   "dia": "11-01",
+   "textos": [
+    "¿{nombre}? Hoy es feriado: ¡a descansar!"
+   ]
+  },
+  {
+   "tipo": "salida",
+   "desde": "20:00",
+   "textos": [
+    "Ya es de noche, {nombre}... corre"
+   ]
+  },
+  {
+   "tipo": "entrada",
+   "cada": 13,
+   "textos": [
+    "Esta huella... ya la había visto antes, {nombre}"
+   ]
+  }
+ ],
+ "sorpresa": {
+  "texto": "¡BUUU!",
+  "tono": [
+   [
+    220,
+    500
+   ],
+   [
+    196,
+    700
+   ]
+  ]
+ },
+ "tonos": {
+  "ok": [
+   [
+    880,
+    90
+   ],
+   [
+    784,
+    90
+   ],
+   [
+    880,
+    500
+   ],
+   [
+    0,
+    180
+   ],
+   [
+    784,
+    90
+   ],
+   [
+    698,
+    90
+   ],
+   [
+    659,
+    90
+   ],
+   [
+    587,
+    90
+   ],
+   [
+    554,
+    300
+   ],
+   [
+    587,
+    600
+   ]
+  ],
+  "salida": [
+   [
+    659,
+    220
+   ],
+   [
+    622,
+    220
+   ],
+   [
+    587,
+    220
+   ],
+   [
+    554,
+    500
+   ]
+  ],
+  "error": [
+   [
+    392,
+    180
+   ],
+   [
+    0,
+    60
+   ],
+   [
+    330,
+    260
+   ]
+  ],
+  "aviso": [
+   [
+    1568,
+    100
+   ],
+   [
+    0,
+    50
+   ],
+   [
+    1568,
+    100
+   ]
+  ],
+  "tecla": [
+   [
+    2637,
+    16
+   ]
+  ]
+ }
+}
