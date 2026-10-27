@@ -60,10 +60,11 @@ python -I sim/probar_panel.py http://127.0.0.1:8078 "$CLOCK_TOKEN"   # vs server
 
 `RELOJ_SIM_RAIZ` moves the simulator's data and screenshots (default `.sim/`). The simulator's
 `LIBDEPS` (CMake cache) must point to the LVGL that PlatformIO downloaded (default
-`.pio/libdeps/reloj`). CI runs `pio run` and a server smoke test on every push.
+`.pio/libdeps/reloj`). Server changes: `CLOCK_TOKEN=x CLOCK_DB=/tmp/c.db python server/smoke_test.py`
+must end in `smoke test: all good`.
 
 **Done means:** `pio run` succeeds, both simulator suites print `RESULTADO: todo bien` when you
-touched `src/` or `sim/`, `docs/API.md` matches the code on both sides, and no secret was added.
+touched `src/` or `sim/`, the smoke test passes when you touched `server/`, `docs/API.md` matches the code on both sides, and no secret was added.
 
 ## Rules that keep it working
 
