@@ -113,14 +113,34 @@ static void escanearUnaVez() {
     delay(100);
     return;
   }
-  if (fp.image2Tz(1) != FINGERPRINT_OK) {
-    avisar(HEv::IMAGEN_MALA);
-  } else {
-    const uint8_t s = fp.fingerSearch(1);
-    if (s == FINGERPRINT_OK) avisar(HEv::COINCIDE, fp.fingerID, fp.confidence);
-    else avisar(HEv::NO_COINCIDE);
+  // La primera imagen se toma apenas el dedo roza el vidrio: suele salir parcial.
+  // Si no calza y el dedo sigue apoyado, se toman más imágenes antes de decir
+  // «No te conozco». Para la persona es un solo intento (~0,5 s más en el peor caso).
+  bool huboImagen = false;  // alguna imagen sirvió para buscar (no calzó)
+  for (uint8_t intento = 1; intento <= INTENTOS_HUELLA; intento++) {
+    if (intento > 1) {
+      delay(120);
+      if (hayOrden()) return;
+      const uint8_t g = fp.getImage();
+      if (g == FINGERPRINT_NOFINGER) break;  // sacó el dedo: se informa lo que hubo
+      if (g != FINGERPRINT_OK) continue;
+    }
+    if (fp.image2Tz(1) != FINGERPRINT_OK) {
+      Serial.printf("[huella] intento %u: imagen mala\n", intento);
+      continue;
+    }
+    huboImagen = true;
+    if (fp.fingerSearch(1) == FINGERPRINT_OK) {
+      Serial.printf("[huella] reconocida en el intento %u (dedo %u, puntaje %u)\n", intento, fp.fingerID,
+                    fp.confidence);
+      avisar(HEv::COINCIDE, fp.fingerID, fp.confidence);
+      esperarSinDedo(6000);  // no volver a leer el mismo dedo mientras siga apoyado
+      return;
+    }
+    Serial.printf("[huella] intento %u: no calza\n", intento);
   }
-  esperarSinDedo(6000);  // no volver a leer el mismo dedo mientras siga apoyado
+  avisar(huboImagen ? HEv::NO_COINCIDE : HEv::IMAGEN_MALA);
+  esperarSinDedo(6000);
 }
 
 // Registro: dos lecturas del mismo dedo, se combinan y se guardan en idHuella.

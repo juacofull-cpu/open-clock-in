@@ -39,6 +39,8 @@
 #define HUELLA_RX 44
 #define HUELLA_TX 43
 #define HUELLA_BAUD 57600
+// Imágenes que se prueban con el dedo apoyado antes de decir «No te conozco»
+#define INTENTOS_HUELLA 3
 
 // Zona horaria POSIX (por defecto Chile continental). Ej.: "CET-1CEST,M3.5.0,M10.5.0/3" (Madrid),
 // "<-03>3" (Buenos Aires), "CST6CDT,M4.1.0,M10.5.0" (México): https://github.com/nayarsystems/posix_tz_db
