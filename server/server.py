@@ -15,8 +15,10 @@ Cloudflare Tunnel or a host that gives you HTTPS (see server/README.md).
 Environment:
   CLOCK_TOKEN   required, long random text; the clock sends it as "Authorization: Bearer ..."
   CLOCK_DB      SQLite file (default: clock.db next to this file)
-  CLOCK_TZ      IANA time zone used to decide the working day (default America/Santiago)
+  CLOCK_TZ      IANA time zone for the local times shown and exported (default America/Santiago)
   CLOCK_OFFICES comma-separated office letters accepted from clocks (default A,B)
+  CLOCK_MAX_SHIFT_HOURS  longest shift (default 16). A punch is OUT when the previous one was an
+                IN at most this long ago, even across midnight (24/7 shifts); otherwise it is IN.
 """
 import argparse
 import base64
@@ -39,6 +41,8 @@ OFFICES = tuple(o.strip().upper() for o in os.environ.get("CLOCK_OFFICES", "A,B"
 REPEAT_SECONDS = 120          # same person again within 2 min = "already punched", not stored
 MAX_FUTURE = timedelta(minutes=5)
 MAX_AGE = timedelta(days=7)   # queued punches older than this are rejected
+# Shifts can cross midnight: OUT = the punch after an IN of at most MAX_SHIFT ago.
+MAX_SHIFT = timedelta(hours=int(os.environ.get("CLOCK_MAX_SHIFT_HOURS", "16")))
 
 
 def local_tz():
@@ -64,6 +68,17 @@ def utc_now():
 
 def iso(t):
     return t.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def parse_iso(s):
+    return datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+
+
+def kind_after(prev, t):
+    """prev = (type, time) of the person's previous punch, or None. 24/7: no day boundary."""
+    if prev and prev[0] == "ENTRADA" and t - prev[1] <= MAX_SHIFT:
+        return "SALIDA"
+    return "ENTRADA"
 
 
 # ------------------------------------------------------------------ storage --
@@ -158,6 +173,27 @@ class Store:
             self.db.execute("INSERT OR IGNORE INTO punches VALUES (?, ?, ?, ?, ?, ?, ?)",
                             (id_, perfil, tipo, iso(t), oficina, int(repetida), json.dumps(respuesta)))
 
+    def retype_after(self, perfil, t_iso, kind_of):
+        """A late punch (offline queue) can change the type of the ones after it: walk them in
+        order and fix each with kind_of(previous_type, previous_t, t). Answers already sent stay."""
+        with self.lock, self.db:
+            rows = self.db.execute("""SELECT id, tipo, t_utc FROM punches WHERE perfil = ? AND repetida = 0
+                                      AND t_utc >= ? ORDER BY t_utc, id""", (perfil, t_iso)).fetchall()
+            prev = None
+            for r in rows:
+                t = parse_iso(r["t_utc"])
+                kind = kind_of(prev, t) if prev else r["tipo"]
+                if kind != r["tipo"]:
+                    self.db.execute("UPDATE punches SET tipo = ? WHERE id = ?", (kind, r["id"]))
+                prev = (kind, t)
+
+    def last_punch_since(self, since_iso):
+        """perfil -> (tipo, t_utc) of their newest stored punch since that moment."""
+        with self.lock:
+            rows = self.db.execute("""SELECT perfil, tipo, t_utc FROM punches WHERE repetida = 0
+                                      AND t_utc >= ? ORDER BY t_utc""", (since_iso,)).fetchall()
+        return {r["perfil"]: (r["tipo"], r["t_utc"]) for r in rows}
+
     def punches_between(self, desde, hasta):
         with self.lock:
             return self.db.execute("""SELECT m.t_utc, m.perfil, COALESCE(p.nombre, m.perfil) AS nombre, m.tipo, m.oficina
@@ -211,11 +247,16 @@ class Handler(BaseHTTPRequestHandler):
             return
         if self.path == "/api/reloj/perfiles":
             fingers = self.store.fingers()
+            now = utc_now()
+            last = self.store.last_punch_since(iso(now - MAX_SHIFT))
             people = [{"perfil": p["perfil"], "nombre": p["nombre"],
                        "huellas": sorted(f["huella"] for f in fingers if f["perfil"] == p["perfil"]),
-                       "foto": short_hash(p["foto"]) if p["foto"] else ""} for p in self.store.people()]
+                       "foto": short_hash(p["foto"]) if p["foto"] else "",
+                       "ultima": ({"tipo": last[p["perfil"]][0], "hora": last[p["perfil"]][1]}
+                                  if p["perfil"] in last else None)} for p in self.store.people()]
             templates = {str(f["huella"]): short_hash(f["plantilla"]) for f in fingers if f["plantilla"]}
-            return self.reply(200, {"perfiles": people, "ahora": iso(utc_now()), "plantillas": templates})
+            return self.reply(200, {"perfiles": people, "ahora": iso(now), "plantillas": templates,
+                                    "jornada_horas": int(MAX_SHIFT.total_seconds() // 3600)})
         m = re.fullmatch(r"/api/reloj/fotos/([A-Za-z0-9_.-]{1,64})", self.path)
         if m:
             p = self.store.person(m.group(1))
@@ -304,18 +345,18 @@ class Handler(BaseHTTPRequestHandler):
             if not perfil:
                 return self.reply(404, {"detail": "Huella sin perfil."})
             before = self.store.last_punches(perfil, iso(t))
-            day = t.astimezone(TZ).date()
             last = before[0] if before else None
-            last_t = datetime.strptime(last["t_utc"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc) if last else None
+            last_t = parse_iso(last["t_utc"]) if last else None
             repeated = last is not None and (t - last_t).total_seconds() < REPEAT_SECONDS
             if repeated:
                 kind = last["tipo"]
             else:
-                today = last is not None and last_t.astimezone(TZ).date() == day
-                kind = "SALIDA" if today and last["tipo"] == "ENTRADA" else "ENTRADA"
+                kind = kind_after((last["tipo"], last_t) if last else None, t)
             answer = {"perfil": perfil, "nombre": self.store.person(perfil)["nombre"], "tipo": kind,
                       "repetida": repeated, "hora": t.astimezone(TZ).strftime("%H:%M")}
             self.store.save_punch(id_, perfil, kind, t, office, repeated, answer)
+            if not repeated:
+                self.store.retype_after(perfil, iso(t), kind_after)
         self.reply(200, answer)
 
 

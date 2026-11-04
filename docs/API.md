@@ -27,11 +27,13 @@ someone who already exists.
 ```json
 {
   "perfiles": [
-    {"perfil": "ana", "nombre": "Ana", "huellas": [1, 7], "foto": "3f9a0c12be41"},
-    {"perfil": "diego", "nombre": "Diego", "huellas": [], "foto": ""}
+    {"perfil": "ana", "nombre": "Ana", "huellas": [1, 7], "foto": "3f9a0c12be41",
+     "ultima": {"tipo": "ENTRADA", "hora": "2026-10-25T02:50:00Z"}},
+    {"perfil": "diego", "nombre": "Diego", "huellas": [], "foto": "", "ultima": null}
   ],
   "plantillas": {"1": "a1b2c3d4e5f6", "7": "0718293a4b5c"},
-  "ahora": "2026-10-25T11:02:11Z"
+  "ahora": "2026-10-25T11:02:11Z",
+  "jornada_horas": 16
 }
 ```
 
@@ -40,6 +42,11 @@ someone who already exists.
   no photo (the clock draws a silhouette).
 - `plantillas`: finger number → template version, only for fingers that have an uploaded template.
 - `ahora`: server time in UTC. The clock uses it when it has no NTP.
+- `ultima`: that person's newest stored punch of the last `jornada_horas` hours, from **any** clock
+  (`tipo` + UTC `hora`), or `null`. The clock uses it to greet "Nos vemos" when the IN was punched on
+  another clock or before midnight. Optional: an older server without it still works (the clock then
+  only knows its own punches).
+- `jornada_horas`: longest shift in hours (default 16, see the punch rule below). Optional.
 - The clock asks for this every 3 minutes, and again soon after a "No te conozco" (unknown finger).
 
 ### `GET /api/reloj/fotos/{perfil}`
@@ -89,12 +96,14 @@ server is deleted from the sensor.
 - `oficina`: optional, which clock it came from (missing = the first office). Unknown → `422`.
 
 The server finds the person of that finger (`404 {"detail": "Huella sin perfil."}` if none) and
-decides the type with that person's punches of the same **local** day:
+decides the type with that person's previous punch, **with no day boundary** (shifts can cross
+midnight, e.g. 22:00 → 06:30):
 
-- no punches today, or the last one is `SALIDA` → `ENTRADA`
-- the last one is `ENTRADA` → `SALIDA`
+- the previous one is an `ENTRADA` at most `jornada_horas` (16 h) ago → `SALIDA`
+- anything else (no previous punch, a `SALIDA`, or an `ENTRADA` older than 16 h = forgotten OUT) → `ENTRADA`
 - less than 120 s after their previous punch → `repetida: true`, same type as before, not stored
 
+If an older punch arrives late (offline queue), the punches after it are re-typed with the same rule.
 In and out can happen at different offices (in at A, out at B = one working day).
 
 ```json
@@ -105,7 +114,10 @@ In and out can happen at different offices (in at A, out at B = one working day)
 
 ## What the clock does offline
 
-- It keeps the last `/perfiles` answer and today's punches, so it can still greet people.
+- It keeps the last `/perfiles` answer (with each person's `ultima`) and today's punches, so it can
+  still greet people. At midnight it moves each person's last punch into their cached profile before
+  clearing "today", so someone who came in at 23:50 still gets "Nos vemos" at 00:22 offline.
+- It greets with the newest of its own punch and `ultima`; on a tie (same time) the server wins.
 - New punches go to a queue in flash (`/cola.txt`) and are sent in order when the network is back.
   If the server's answer differs from what the clock guessed, the server wins.
 - Enrolling and deleting fingers need the server: offline they show "Necesita internet".

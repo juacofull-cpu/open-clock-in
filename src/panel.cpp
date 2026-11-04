@@ -88,6 +88,8 @@ static bool escribir(const char* ruta, const std::function<void(File&)>& fn) {
 // Lo que se puede rehacer (hoy.json, la cola ya mandada: el panel no duplica por el id) se
 // guarda después, cuando terminó el saludo. Lo nuevo de la cola se guarda al tiro.
 static bool hoySucio = false, colaSucia = false;
+// perfiles.json (la última marca de cada uno al cambiar de día): también se guarda después
+static bool perfilesSucio = false;
 static uint32_t sucioDesde = 0;
 #define MS_GUARDAR_DESPUES 5000  // saludo (3,5 s) + su salida
 
@@ -259,7 +261,15 @@ static void avisar(PEv ev, uint16_t huella = 0, const String& texto = String()) 
 }
 
 // --------------------------------------------------------------- perfiles --
+// Jornada máxima: la del panel (/perfiles trae jornada_horas) o la de config.h
+static long jornadaS = (long)JORNADA_MAX_H * 3600;
+
+// La última marca que manda el panel ("ultima": {"tipo","hora"} o null). Si este reloj sabe
+// de una más nueva (marcada sin internet, todavía en la cola), se queda con la suya.
 static void leerPerfiles(JsonArrayConst arr) {
+  std::map<String, std::pair<String, time_t>> antes;
+  for (auto& p : perfiles)
+    if (p.ultimaT) antes[p.perfil] = {p.ultimaTipo, p.ultimaT};
   perfiles.clear();
   for (JsonObjectConst o : arr) {
     Perfil p;
@@ -267,6 +277,17 @@ static void leerPerfiles(JsonArrayConst arr) {
     p.nombre = (const char*)(o["nombre"] | "");
     p.foto = (const char*)(o["foto"] | "");
     for (uint16_t h : o["huellas"].as<JsonArrayConst>()) p.huellas.push_back(h);
+    JsonObjectConst u = o["ultima"];
+    if (!u.isNull()) {
+      p.ultimaTipo = (const char*)(u["tipo"] | "");
+      p.ultimaT = deIsoUtc(u["hora"] | "");
+      if (!p.ultimaT) p.ultimaTipo = "";
+    }
+    auto a = antes.find(p.perfil);
+    if (a != antes.end() && a->second.second > p.ultimaT) {
+      p.ultimaTipo = a->second.first;
+      p.ultimaT = a->second.second;
+    }
     if (p.perfil.length()) perfiles.push_back(p);
   }
 }
@@ -283,6 +304,11 @@ static String textoPerfiles() {
     o["foto"] = p.foto;
     JsonArray h = o["huellas"].to<JsonArray>();
     for (uint16_t x : p.huellas) h.add(x);
+    if (p.ultimaT) {
+      JsonObject u = o["ultima"].to<JsonObject>();
+      u["tipo"] = p.ultimaTipo;
+      u["hora"] = isoUtc(p.ultimaT);
+    }
   }
   String txt;
   serializeJson(d, txt);
@@ -446,11 +472,27 @@ static void cargarHoy() {
   f.close();
 }
 
-// Al cambiar el día (hora de Chile, como el panel) se parte de cero
+// Al cambiar el día (hora de Chile, como el panel) «Marcas de hoy» parte de cero. Pero el
+// taller trabaja 24/7: antes de borrarla, la última marca de cada persona pasa a su perfil,
+// para que quien entró a las 23:50 salga a las 00:22 con «Nos vemos» aunque no haya internet.
 static void asegurarDia() {
   if (!hora_valida()) return;
   const String f = fecha_hoy();
   if (f == hoyFecha) return;
+  bool cambio = false;
+  for (auto& m : hoy) {
+    if (m.repetida || !m.tipo.length() || !m.t || !m.perfil.length()) continue;
+    Perfil* p = perfilMut(m.perfil);
+    if (p && m.t > p->ultimaT) {
+      p->ultimaTipo = m.tipo;
+      p->ultimaT = m.t;
+      cambio = true;
+    }
+  }
+  if (cambio) {
+    perfilesSucio = true;
+    sucioDesde = millis();  // se escribe pasado el saludo, no durante
+  }
   hoyFecha = f;
   hoy.clear();
   guardarHoy();
@@ -471,11 +513,31 @@ static void quitarHoy(const String& id) {
     }
 }
 
-// Última marca que contó de esa persona hoy
-static const MarcaHoy* ultimaDe(const String& perfil) {
+// Última marca que contó de esa persona: la más nueva entre las de hoy de este reloj y la de
+// su perfil (que manda el panel: incluye ayer y el otro reloj). false = no se sabe de ninguna.
+static bool ultimaDe(const String& perfil, String& tipo, time_t& t) {
+  const MarcaHoy* local = nullptr;
   for (size_t i = hoy.size(); i-- > 0;)
-    if (hoy[i].perfil == perfil && !hoy[i].repetida && hoy[i].tipo.length()) return &hoy[i];
-  return nullptr;
+    if (hoy[i].perfil == perfil && !hoy[i].repetida && hoy[i].tipo.length()) {
+      local = &hoy[i];
+      break;
+    }
+  const Perfil* p = perfilMut(perfil);
+  const bool delPanel = p && p->ultimaT && p->ultimaTipo.length();
+  // Una marca local sin hora (t = 0) es de recién: vale más que cualquier otra. Si es la misma
+  // marca que la del panel (misma hora), manda el panel: es el que decide el tipo, y la copia
+  // local puede haber quedado con un tipo viejo (por ejemplo, si el servidor cambió la regla).
+  if (local && (!delPanel || !local->t || local->t > p->ultimaT)) {
+    tipo = local->tipo;
+    t = local->t;
+    return true;
+  }
+  if (delPanel) {
+    tipo = p->ultimaTipo;
+    t = p->ultimaT;
+    return true;
+  }
+  return false;
 }
 
 const std::vector<MarcaHoy>& panel_marcas_hoy() { return hoy; }
@@ -550,12 +612,17 @@ Saludo panel_marcar(uint16_t huella) {
   if (p) {
     s.nombre = m.nombre = p->nombre;
     s.perfil = m.perfil = p->perfil;
-    const MarcaHoy* u = ultimaDe(p->perfil);
-    if (u && u->t && ahora && ahora >= u->t && ahora - u->t < SEG_MARCA_REPETIDA) {
+    // Misma regla que el panel: SALIDA si lo último fue una ENTRADA de hace jornadaS o menos,
+    // aunque haya sido antes de la medianoche o en el otro reloj.
+    String uTipo;
+    time_t uT = 0;
+    const bool hay = ultimaDe(p->perfil, uTipo, uT);
+    if (hay && uT && ahora && ahora >= uT && ahora - uT < SEG_MARCA_REPETIDA) {
       s.repetida = true;
-      s.tipo = u->tipo;
+      s.tipo = uTipo;
     } else {
-      s.tipo = (u && u->tipo == "ENTRADA") ? "SALIDA" : "ENTRADA";
+      const bool dentroDeJornada = !uT || !ahora || ahora < uT || ahora - uT <= jornadaS;
+      s.tipo = (hay && uTipo == "ENTRADA" && dentroDeJornada) ? "SALIDA" : "ENTRADA";
     }
   }
   m.tipo = s.tipo;
@@ -778,6 +845,8 @@ static void respuestaPerfiles(PedidoHttp* p) {
     return;
   }
   leerPerfiles(d["perfiles"].as<JsonArrayConst>());
+  const long jh = d["jornada_horas"] | (long)JORNADA_MAX_H;
+  if (jh >= 1 && jh <= 48) jornadaS = jh * 3600;
   guardarPerfiles();
   limpiarFotos();
   plantillasPanel.clear();
@@ -987,7 +1056,7 @@ void panel_tarea() {
     tDia = millis();
     ponerHoras();
     asegurarDia();
-    if ((hoySucio || colaSucia) && millis() - sucioDesde > MS_GUARDAR_DESPUES) panel_guardar_ya();
+    if ((hoySucio || colaSucia || perfilesSucio) && millis() - sucioDesde > MS_GUARDAR_DESPUES) panel_guardar_ya();
   }
   if (enCurso) return;
   if (!panel_listo()) {
@@ -1022,6 +1091,10 @@ void panel_tarea() {
 void panel_guardar_ya() {
   if (hoySucio) guardarHoy();
   if (colaSucia) guardarCola();
+  if (perfilesSucio) {
+    perfilesSucio = false;
+    guardarPerfiles();
+  }
 }
 
 bool panel_evento(PanelEv& ev) {

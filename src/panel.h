@@ -10,6 +10,10 @@ struct Perfil {
   String nombre;  // "Ana"
   std::vector<uint16_t> huellas;
   String foto;    // versión de su foto en el panel ("" = sin foto propia: silueta)
+  // Su última marca que contó, aunque sea de ayer o del otro reloj: la manda el servidor y la
+  // completa este reloj al cambiar de día. Con eso se decide «Hola» o «Nos vemos».
+  String ultimaTipo;   // ENTRADA / SALIDA / "" = no se sabe
+  time_t ultimaT = 0;  // UTC
 };
 
 // Una marca que este reloj hizo hoy (copia local; la de verdad está en el panel)

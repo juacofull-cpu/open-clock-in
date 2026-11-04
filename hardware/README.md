@@ -25,9 +25,26 @@
 All pins are in [`src/config.h`](../src/config.h). Do not use IO45/IO46 for the sensor: they are
 strapping pins and the sensor could stop the board from booting.
 
-> **Status:** the firmware was developed and tested in the PC simulator, and the pinout comes from
-> the official LCDWiki spec plus two other projects that use this board (xiaozhi-esp32 and
-> NerdMiner). It has **not been run on a real board yet**. See the checklist in the main README.
+**Go by the labels, not the wire colors.** Colors change between sellers. On the first real unit:
+
+- the 4-wire cable that comes with the board, in its UART connector: green = RXD, yellow = TXD,
+  black = GND, red = 5 V (check the letters printed next to the connector);
+- the sensor's 6 wires: red = V+, **yellow = TX**, **white = RX**, black = GND, green = touch output,
+  blue = touch power. The ZFM-20 manual says green = TX, and that unit was different: the green wire
+  idles high (touch output), which looks like a TX on a meter but never answers.
+
+So the data wires were: board green (RXD) → sensor yellow (TX), board yellow (TXD) → sensor white
+(RX). Swapping TX and RX does no harm, it just does not talk. Swapping V+ and GND can kill the sensor.
+Some AS608 boards are labeled `+3.3V`: power them from 3.3 V, not from the 5 V of the UART connector.
+
+If the clock says the sensor is disconnected while its light is on, flash
+[`herramientas/probar-lector`](../herramientas/probar-lector/) instead of the clock: it tries both
+TX/RX orientations at 9600–115200 baud, prints the raw bytes, checks the UART with an internal
+loopback, and tells you whether each data line is driven by something. Then flash the clock again.
+
+> **Status:** first run on a real board on 2026-11-03: it boots, the touch screen, the sensor, Wi-Fi
+> and the server connection work, and punches reach the server. Sound, the case fit and long runs
+> are still being checked. See the checklist in the main README.
 
 ## Case
 

@@ -33,6 +33,8 @@ except Exception:  # Windows sin tzdata: octubre es horario de verano (-3)
 
 # RELOJ_FALSO_FECHA=2026-12-24T16:30 (hora de Chile): el panel vive en esa fecha, para probar los temas
 DESFASE = timedelta(0)
+#: Taller 24/7: SALIDA = la marca que sigue a una ENTRADA de hace esto o menos, sea del día que sea.
+JORNADA = timedelta(hours=16)
 if os.environ.get("RELOJ_FALSO_FECHA"):
     _f = datetime.strptime(os.environ["RELOJ_FALSO_FECHA"], "%Y-%m-%dT%H:%M").replace(tzinfo=CHILE)
     DESFASE = _f - datetime.now(timezone.utc)
@@ -134,11 +136,15 @@ class Pedido(BaseHTTPRequestHandler):
             return
         if self.path == "/api/reloj/perfiles":
             with candado:
+                desde = ahora_utc() - JORNADA
+                ultima = {m["perfil"]: {"tipo": m["tipo"], "hora": m["t"].strftime("%Y-%m-%dT%H:%M:%SZ")}
+                          for m in guardadas if m["t"] >= desde}
                 lista = [{"perfil": p, "nombre": n, "huellas": sorted(h for h, q in huellas.items() if q == p),
-                          "foto": VERSION.get(p, "")} for p, n in PERFILES]
+                          "foto": VERSION.get(p, ""), "ultima": ultima.get(p)} for p, n in PERFILES]
                 vers = {str(k): version_plantilla(v) for k, v in plantillas.items()}
             ahora = ahora_utc().strftime("%Y-%m-%dT%H:%M:%SZ")
-            return self.responder(200, {"perfiles": lista, "ahora": ahora, "plantillas": vers})
+            return self.responder(200, {"perfiles": lista, "ahora": ahora, "plantillas": vers,
+                                        "jornada_horas": int(JORNADA.total_seconds() // 3600)})
         m = re.fullmatch(r"/api/reloj/huellas/(\d+)/plantilla", self.path)
         if m:
             with candado:
@@ -229,14 +235,14 @@ class Pedido(BaseHTTPRequestHandler):
             p = huellas.get(h)
             if not p:
                 return self.responder(404, {"detail": "Huella sin perfil."})
-            dia = hora.astimezone(CHILE).date()
             antes = [m for m in guardadas if m["perfil"] == p and m["t"] <= hora]
-            hoy = [m for m in antes if m["t"].astimezone(CHILE).date() == dia]
             repetida = bool(antes) and (hora - antes[-1]["t"]).total_seconds() < 120
             if repetida:
                 tipo = antes[-1]["tipo"]
             else:
-                tipo = "SALIDA" if hoy and hoy[-1]["tipo"] == "ENTRADA" else "ENTRADA"
+                previa = antes[-1] if antes else None
+                tipo = ("SALIDA" if previa and previa["tipo"] == "ENTRADA" and hora - previa["t"] <= JORNADA
+                        else "ENTRADA")
                 guardadas.append({"perfil": p, "tipo": tipo, "t": hora, "oficina": oficina,
                                   "con_oficina": "oficina" in d})
                 guardadas.sort(key=lambda m: m["t"])

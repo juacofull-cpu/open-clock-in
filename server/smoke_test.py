@@ -67,6 +67,35 @@ try:
     check(call("POST", "/api/reloj/marcas", {"id": "punch-0002", "huella": 1})[1]["repetida"], "again within 2 min = repetida")
     check(call("POST", "/api/reloj/marcas", {"id": "punch-0003", "huella": 9})[0] == 404, "unknown finger -> 404")
     check(call("POST", "/api/reloj/marcas", {"id": "punch-0004", "huella": 1, "oficina": "Z"})[0] == 422, "unknown office -> 422")
+    ultima = {x["perfil"]: x["ultima"] for x in call("GET", "/api/reloj/perfiles")[1]["perfiles"]}
+    check(ultima["ana"] == {"tipo": "ENTRADA", "hora": now} and ultima["diego"] is None, "perfiles: last punch")
+
+    # 24/7: a shift crosses midnight; an IN with no OUT for more than 16 h is a forgotten OUT
+    from datetime import datetime, timedelta, timezone
+    from zoneinfo import ZoneInfo
+    tz = ZoneInfo(os.environ.get("CLOCK_TZ", "America/Santiago"))
+    day0 = datetime.now(tz).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    def at(days, h, m):  # local time `days` days from today -> UTC string
+        return (day0 + timedelta(days=days, hours=h, minutes=m)).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def kind(id_, finger, t):
+        return call("POST", "/api/reloj/marcas", {"id": id_, "huella": finger, "hora": t})[1]["tipo"]
+
+    call("POST", "/api/reloj/huellas", {"huella": 3, "perfil": "diego"})
+    check(kind("night-0001", 3, at(-3, 23, 50)) == "ENTRADA", "in at 23:50")
+    check(kind("night-0002", 3, at(-2, 0, 22)) == "SALIDA", "out at 00:22 the next day (crosses midnight)")
+    check(kind("night-0003", 3, at(-2, 1, 0)) == "ENTRADA", "in at 01:00")
+    check(kind("night-0004", 3, at(-2, 17, 30)) == "ENTRADA", "16.5 h later = forgot the OUT, this is a new IN")
+    call("POST", "/api/reloj/huellas", {"huella": 4, "perfil": "eva"})
+    check(kind("late-0002", 4, at(-4, 0, 30)) == "ENTRADA", "queued punch arrives first")
+    check(kind("late-0001", 4, at(-5, 23, 50)) == "ENTRADA", "the older one arrives late")
+    import sqlite3
+    with sqlite3.connect(DB) as db:
+        later = db.execute("SELECT tipo FROM punches WHERE id = 'late-0002'").fetchone()[0]
+    check(later == "SALIDA", "the late punch fixed the type of the one after it")
+    check(call("GET", "/api/reloj/perfiles")[1]["jornada_horas"] == 16, "perfiles: jornada_horas")
+
     check(call("DELETE", "/api/reloj/huellas/1")[0] == 200, "release finger")
     check(call("GET", "/api/reloj/huellas/1/plantilla")[0] == 404, "template gone with the finger")
     print("smoke test: all good")

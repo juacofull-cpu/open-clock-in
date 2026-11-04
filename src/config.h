@@ -46,6 +46,9 @@
 
 #define PIN_INICIAL "1234"  // cámbiala en Ajustes → Cambiar clave al instalar
 #define SEG_MARCA_REPETIDA 120  // misma persona dentro de 2 min = no se cuenta de nuevo
+// Turnos 24/7: la marca que sigue a una ENTRADA de hace estas horas o menos es la SALIDA, aunque
+// haya pasado la medianoche. El servidor manda el suyo en /perfiles (jornada_horas).
+#define JORNADA_MAX_H 16
 
 // Servidor (backend) donde quedan las marcas y están las personas: ver docs/API.md y server/.
 // La dirección y la llave (RELOJ_TOKEN) se cargan desde http://reloj.local y quedan en la NVS.

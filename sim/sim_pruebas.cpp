@@ -2,6 +2,7 @@
 // variable RELOJ_SIM_PRUEBAS con un puerto (por ejemplo 8099). Escucha en 127.0.0.1.
 //   /tocar?x=&y=   /arrastrar?x=&y=&x2=&y2=   /dedo?n=   /mal   /enchufar?on=0|1   /boot?on=0|1
 //   /internet?on=0|1   /captura?v=0|1&archivo=ruta.bmp   /textos   /estado   /perfiles   /salir
+//   /hora?t=segundos-UTC   (mover el reloj: probar la medianoche sin esperarla)
 #include <windows.h>
 #include <memory>
 #include "WebServer.h"
@@ -70,6 +71,11 @@ void sim_pruebas_iniciar() {
   });
   srv->on("/perfiles", HTTP_ANY, [] {  // pedir la lista al panel ahora (no esperar los 3 min)
     panel_pedir_perfiles();
+    ok();
+  });
+  srv->on("/hora", HTTP_ANY, [] {
+    struct timeval tv = {(time_t)atoll(srv->arg("t").c_str()), 0};
+    settimeofday(&tv, nullptr);
     ok();
   });
   srv->on("/salir", HTTP_ANY, [] {
